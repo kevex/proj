@@ -27,6 +27,16 @@ app.post('/',function(req,res) {
 		rObj.cuisine = req.body.cuisine;
 		rObj.name = req.body.name;
 		rObj.restaurant_id = req.body.restaurant_id;
+		rObj.grades = [];
+		//var record = {};
+		//record.date=req.body.date;
+		//record.grade=req.body.grade;
+		//record.score=req.body.score;
+		if(req.body.date != null||req.body.grade!=null||req.body.score!=null)
+		{
+			var jsonstring = {"date":req.body.date,"grade":req.body.grade,"score":req.body.score};
+			rObj.grades.push(jsonstring);
+		}
 
 		var Restaurant = mongoose.model('Restaurant', restaurantSchema);
 		var r = new Restaurant(rObj);
@@ -62,18 +72,14 @@ app.delete('/restaurant_id/:id',function(req,res) {
     });
 });
 
-app.get('/:attrib/:attrib_value', function(req,res) {
+app.get('/restaurant_id/:id', function(req,res) {
 	var restaurantSchema = require('./models/restaurant');
 	mongoose.connect('mongodb://localhost/test');
 	var db = mongoose.connection;
-	var criteria = {};
-	
-	criteria[req.params.attrib] = req.params.attrib_value.replace("+"," ");
-
 	db.on('error', console.error.bind(console, 'connection error:'));
 	db.once('open', function (callback) {
 		var Restaurant = mongoose.model('Restaurant', restaurantSchema);
-		Restaurant.find(criteria ,function(err,results){
+		Restaurant.find({restaurant_id: req.params.id},function(err,results){
        		if (err) {
 				res.status(500).json(err);
 				throw err
@@ -89,18 +95,19 @@ app.get('/:attrib/:attrib_value', function(req,res) {
     });
 });
 
-app.get('/address/:attrib/:attrib_value', function(req,res) {
+//new test get method for get any attribute
+app.get('/:attrib/:attrib_value', function(req,res) {
 	var restaurantSchema = require('./models/restaurant');
 	mongoose.connect('mongodb://localhost/test');
 	var db = mongoose.connection;
 	var criteria = {};
-	
-	criteria["address." + req.params.attrib] = req.params.attrib_value.replace("+"," ");
-
 	db.on('error', console.error.bind(console, 'connection error:'));
 	db.once('open', function (callback) {
 		var Restaurant = mongoose.model('Restaurant', restaurantSchema);
-		Restaurant.find(criteria ,function(err,results){
+		
+		
+		criteria[req.params.attrib] = req.params.attrib_value.replace("+", " ");
+		Restaurant.find(criteria,function(err,results){
        		if (err) {
 				res.status(500).json(err);
 				throw err
@@ -114,6 +121,166 @@ app.get('/address/:attrib/:attrib_value', function(req,res) {
 			db.close();
     	});
     });
+});
+
+//new test get method 2 for get variable of address
+app.get('/address/:attrib/:attrib_value', function(req,res) {
+	var restaurantSchema = require('./models/restaurant');
+	mongoose.connect('mongodb://localhost/test');
+	var db = mongoose.connection;
+	var criteria = {};
+	db.on('error', console.error.bind(console, 'connection error:'));
+	db.once('open', function (callback) {
+		var Restaurant = mongoose.model('Restaurant', restaurantSchema);
+		
+		criteria["address."+req.params.attrib] = req.params.attrib_value.replace("+", " ");
+		Restaurant.find(criteria,function(err,results){
+       		if (err) {
+				res.status(500).json(err);
+				throw err
+			}
+			if (results.length > 0) {
+				res.status(200).json(results);
+			}
+			else {
+				res.status(200).json({message: 'No matching document'});
+			}
+			db.close();
+    	});
+    });
+});
+
+//new test get method 3 for get grade records
+app.get('/grades/:attrib/:attrib_value', function(req,res) {
+	var restaurantSchema = require('./models/restaurant');
+	mongoose.connect('mongodb://localhost/test');
+	var db = mongoose.connection;
+	var criteria = {};
+	db.on('error', console.error.bind(console, 'connection error:'));
+	db.once('open', function (callback) {
+		var Restaurant = mongoose.model('Restaurant', restaurantSchema);
+		
+		criteria["grades."+req.params.attrib] = req.params.attrib_value.replace("+", " ");
+		Restaurant.find(criteria,function(err,results){
+       		if (err) {
+				res.status(500).json(err);
+				throw err
+			}
+			if (results.length > 0) {
+				res.status(200).json(results);
+			}
+			else {
+				res.status(200).json({message: 'No matching document'});
+			}
+			db.close();
+    	});
+    });
+});
+
+/*
+//to update
+app.put('restaurant/:id/:attrib/:attrib_value',function(req,res) {
+	var restaurantSchema = require('./models/restaurant');
+	mongoose.connect('mongodb://localhost/test');
+	var criteria = {};
+	var db = mongoose.connection;
+	db.on('error', console.error.bind(console, 'connection error:'));
+	db.once('open', function (callback) {
+		var Restaurant = mongoose.model('Restaurant', restaurantSchema);
+
+		criteria[req.params.attrib] = req.params.attrib_value;   //.replace("+", " ");
+		Restaurant.find({restaurant_id: req.params.id}).update({$set:criteria}, function(err) {
+		//Restaurant.update( ({restaurant_id:req.params.id},{$set:criteria}), function(err) {
+       		if (err) {
+				res.status(500).json(err);
+				throw err
+			}
+       			console.log('Restaurant UPdates!');
+       		
+			//res.status(200).json({message: 'Update done', id: req.params.id});
+			db.close();
+    	});
+    });
+});  */
+
+// to update any
+app.put('/:id/:attrib/:attrib_value',function(req,res) {
+	var restaurantSchema = require('./models/restaurant');
+	mongoose.connect('mongodb://localhost/test');
+	var criteria = {};
+	var db = mongoose.connection;
+	db.on('error', console.error.bind(console, 'connection error:'));
+	db.once('open', function (callback) {
+		var Restaurant = mongoose.model('Restaurant', restaurantSchema);
+
+		criteria[req.params.attrib] = req.params.attrib_value;   //.replace("+", " ");
+		//Restaurant.find({restaurant_id: req.params.id}).update({$set:criteria}, function(err) {
+		Restaurant.update( {restaurant_id: req.params.id},criteria , function(err,results) {
+       		if (err) {
+				res.status(500).json(err);
+				throw err
+			}
+       			console.log('Restaurant UPdates!');
+       			res.status(200).json({message: 'update done', id: req.params.id});
+			//res.status(200).json({message: 'Update done', id: req.params.id});
+			db.close();
+    	});
+    });
+}); 
+
+// to update address
+app.put('/address/:id/:attrib/:attrib_value',function(req,res) {
+	var restaurantSchema = require('./models/restaurant');
+	mongoose.connect('mongodb://localhost/test');
+	var criteria = {};
+	var db = mongoose.connection;
+	db.on('error', console.error.bind(console, 'connection error:'));
+	db.once('open', function (callback) {
+		var Restaurant = mongoose.model('Restaurant', restaurantSchema);
+
+		criteria["grades."+req.params.attrib] = req.params.attrib_value;   //.replace("+", " ");
+		//Restaurant.find({restaurant_id: req.params.id}).update({$set:criteria}, function(err) {
+		Restaurant.update( {restaurant_id: req.params.id},criteria , function(err,results) {
+       		if (err) {
+				res.status(500).json(err);
+				throw err
+			}
+       			console.log('Restaurant UPdates!');
+       			res.status(200).json({message: 'update done', id: req.params.id});
+			//res.status(200).json({message: 'Update done', id: req.params.id});
+			db.close();
+    	});
+    });
+}); 
+
+// to update grade
+app.put('/address/:id/:attrib/:attrib_value',function(req,res) {
+	var restaurantSchema = require('./models/restaurant');
+	mongoose.connect('mongodb://localhost/test');
+	var criteria = {};
+	var db = mongoose.connection;
+	db.on('error', console.error.bind(console, 'connection error:'));
+	db.once('open', function (callback) {
+		var Restaurant = mongoose.model('Restaurant', restaurantSchema);
+
+		criteria["address."+req.params.attrib] = req.params.attrib_value;   //.replace("+", " ");
+		//Restaurant.find({restaurant_id: req.params.id}).update({$set:criteria}, function(err) {
+		Restaurant.update( {restaurant_id: req.params.id},criteria , function(err,results) {
+       		if (err) {
+				res.status(500).json(err);
+				throw err
+			}
+       			console.log('Restaurant UPdates!');
+       			res.status(200).json({message: 'update done', id: req.params.id});
+			//res.status(200).json({message: 'Update done', id: req.params.id});
+			db.close();
+    	});
+    });
+}); 
+
+
+app.get('/', function(req,res) {
+	console.log("Hello");
 });
 
 app.listen(process.env.PORT || 8099);
